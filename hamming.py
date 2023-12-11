@@ -33,7 +33,7 @@ class HammingCode:
                 errors in the code, but it will not correct them.
     """
 
-    def __init__(self, message_bits: int, mode: str = "correct"):
+    def __init__(self, message_bits: int = 4, mode: str = "correct"):
         if mode not in ["correct", "detect"]:
             raise ValueError("Mode must be either `correct` or `detect`")
         self._k = message_bits
@@ -54,6 +54,9 @@ class HammingCode:
             ndarray: The encoded codeword.
         """
         message = self._validate_binary(message)
+        if message.shape[0] != self._k:
+            raise ValueError(
+                f"Message must have {self._k} bits, but has {message.shape[0]} bits")
         codeword = np.dot(self._G, message) % 2
         return BinaryMessage(codeword)
 
@@ -145,7 +148,7 @@ class HammingCode:
         """
         P = np.array([list(map(int, list(bin(i)[2:].zfill(self._p))))
                      for i in range(1, 2**self._p)])
-        # remove vectors with only one 1 since they already exist in I_q
+        # remove vectors with only one 1 since they already exist in I_p
         # -> minimum hamming weight of 2 is needed
         P = P[np.sum(P, axis=1) > 1]
         self._P = P[:self._k]
@@ -168,8 +171,8 @@ class HammingCode:
         Returns:
             ndarray: The H matrix.
         """
-        I_q = np.eye(self._p)
-        H = np.concatenate((self._P.T, I_q), axis=1)
+        I_p = np.eye(self._p)
+        H = np.concatenate((self._P.T, I_p), axis=1)
         self._H = H
         return self._H
 
@@ -220,3 +223,6 @@ class HammingCode:
         if not isinstance(arg, BinaryMessage):
             arg = BinaryMessage(arg)
         return arg
+
+    def __repr__(self):
+        return f"({self._k + self._p},{self._k})-HammingCode: CR={round(self.code_rate, 4)} ({self.mode} mode)"
