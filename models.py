@@ -11,6 +11,8 @@ class BinaryMessage(np.ndarray):
     """
 
     def __new__(cls, input_array):
+        """Creates a new BinaryMessage object from the given array. Checks that the array
+        contains only 0s and 1s."""
         obj = np.asarray(input_array).astype(int).view(cls)
         if not np.all(np.isin(obj, [0, 1])):
             raise ValueError("Array must contain only 0s and 1s")

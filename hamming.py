@@ -56,7 +56,7 @@ class HammingCode:
         message = self._validate_binary(message)
         if message.shape[0] != self._k:
             raise ValueError(
-                f"Message must have {self._k} bits, but has {message.shape[0]} bits")
+                f"Message must have {self._k} bits, but has {message.shape[0]} bits.")
         codeword = np.dot(self._G, message) % 2
         return BinaryMessage(codeword)
 
@@ -141,16 +141,23 @@ class HammingCode:
         return p
 
     def _generate_P(self) -> np.ndarray:
-        """Generates the P matrix used for encoding.
+        """Generates the P matrix used for encoding. The P matrix is a matrix of all
+        possible combinations of binary numbers of length self._p with hamming weight of 
+        at least 2.
 
         Returns:
             ndarray: The P matrix.
         """
+        # Generate all possible combinations of binary numbers of length self._p, but
+        # 1) it starts from 1, so the all-zero combination is not included.
+        # 2) combinations are created in increasing order, beginning from the binary number
+        #    equivalent to 1, up to the binary number equivalent to 2**self._p - 1
         P = np.array([list(map(int, list(bin(i)[2:].zfill(self._p))))
                      for i in range(1, 2**self._p)])
-        # remove vectors with only one 1 since they already exist in I_p
+        # Remove vectors with only one 1 since they already exist in I_p
         # -> minimum hamming weight of 2 is needed
         P = P[np.sum(P, axis=1) > 1]
+        # take only the first k rows
         self._P = P[:self._k]
         return self._P
 
